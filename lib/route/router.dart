@@ -1,3 +1,4 @@
+import 'package:chatprj/Screens/Chat/chat.dart';
 import 'package:chatprj/Screens/Welcome/welcome_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,6 +36,7 @@ final router = GoRouter(
             path: 'login', builder: (context, state) => const LoginScreen()),
         GoRoute(
             path: 'signup', builder: (context, state) => const SignUpScreen()),
+        GoRoute(path: 'chat', builder: (context, state) => const ChatScreen()),
       ],
     ),
   ],

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../components/already_have_an_account_acheck.dart';
 import '../../../constants.dart';
@@ -88,6 +89,7 @@ class _LoginFormState extends State<LoginForm> {
       } else {
         // 로그인 성공 후 처리
         print(userCredential.user!.uid);
+        context.push('/chat');
         // 여기에 로그인 후 이동할 페이지 또는 로직을 추가합니다.
       }
     } on FirebaseAuthException catch (e) {

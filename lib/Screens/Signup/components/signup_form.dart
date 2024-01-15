@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../components/already_have_an_account_acheck.dart';
 import '../../../constants.dart';
@@ -122,6 +123,44 @@ class _SignUpFormState extends State<SignUpForm> {
         // 에러 처리
       } else {
         errorMessage = e.code;
+      }
+
+      await _showCuteAlertDialog(errorMessage);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // 사용자의 이메일 인증 상태 확인
+      if (userCredential.user != null && !userCredential.user!.emailVerified) {
+        // 이메일 인증이 완료되지 않은 경우
+        await _showCuteAlertDialog('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
+      } else {
+        // 로그인 성공 후 처리
+        print(userCredential.user!.uid);
+        // 여기에 로그인 후 이동할 페이지 또는 로직을 추가합니다.
+        context.push('/chat');
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = '';
+      if (e.code == 'account-exists-with-different-credential') {
+        errorMessage = '동일한 이메일로 이미 가입된 계정이 있습니다.';
+      } else {
+        errorMessage = '로그인 중 오류가 발생했습니다.';
       }
 
       await _showCuteAlertDialog(errorMessage);
