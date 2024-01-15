@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../screens/Signup/components/or_divider.dart';
@@ -45,38 +47,42 @@ class _SocalSignUpState extends State<SocalSignUp> {
 
   Future<void> _signInWithGoogle() async {
     try {
+      print('Google 로그인 시도');
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-      // 사용자가 로그인을 취소한 경우
+      print('Google 로그인 시도2');
       if (googleUser == null) {
+        print('Google 로그인 시도3');
         await _showCuteAlertDialog('로그인이 취소되었습니다.');
         return;
       }
-
+      print('Google 로그인 시도4');
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+      print('Google 로그인 시도5');
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      print('Google 로그인 시도6');
 
-      // Firebase에 새 사용자 계정 생성
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: googleUser.email,
-        password: '여기에_사용할_비밀번호_입력',
-      );
+// Firebase에 사용자 인증
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      // 성공적인 로그인 처리
-      await _showCuteAlertDialog('성공적으로 회원가입 되었습니다.');
-      // 필요한 경우 다른 화면으로 이동
+// 성공적인 로그인 처리
+      await _showCuteAlertDialog('성공적으로 로그인 되었습니다.');
+      context.push('/chat');
+      print('Google 로그인 시도7');
+// 필요한 경우 다른 화면으로 이동
     } on FirebaseAuthException catch (e) {
-      // 로그인 실패 처리
-      await _showCuteAlertDialog('로그인에 실패했습니다: ${e.message}');
+// Firebase 인증 관련 에러 처리
+      await _showCuteAlertDialog('Firebase 인증 실패: ${e.message}');
+    } on PlatformException catch (e) {
+      print("Ddddd ");
+      print(e.message);
     } catch (e) {
-      // 기타 오류 처리
-      await _showCuteAlertDialog('오류가 발생했습니다: ${e.toString()}');
+// 그 외 예외 처리
+      print("sssss ");
+      print(e.toString());
+      await _showCuteAlertDialog('오류 발생: ${e.toString()}');
     }
   }
 
