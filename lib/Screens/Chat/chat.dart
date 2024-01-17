@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -84,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         },
         body: jsonEncode(openAiModel.toJson()));
     print(resp.body);
+    await saveMessageToFirestore(Messages(role: "user", content: text));
     if (resp.statusCode == 200) {
       final jsonData = jsonDecode(utf8.decode(resp.bodyBytes)) as Map;
       String role = jsonData["choices"][0]["message"]["role"];
@@ -95,6 +97,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       setState(() {
         _scrollDown();
       });
+
+      await saveMessageToFirestore(Messages(role: role, content: content));
     }
   }
 
@@ -161,9 +165,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         print(e.toString());
       }
     }
-
+    await saveMessageToFirestore(Messages(role: "user", content: text));
     if (respText.isNotEmpty) {
       setState(() {});
+      await saveMessageToFirestore(
+          Messages(role: "assistant", content: respText));
     }
   }
 
@@ -172,6 +178,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     // TODO: implement initState
     super.initState();
     setupAnimations();
+    loadMessages();
+  }
+
+  void loadMessages() async {
+    var messages = await loadMessagesFromFirestore();
+    setState(() {
+      _historyList.addAll(messages.reversed); // 메시지 목록을 반전시켜 최신 메시지가 아래에 오도록 함
+    });
+  }
+
+  Future<void> saveMessageToFirestore(Messages message) async {
+    var collection = FirebaseFirestore.instance.collection('chats');
+    await collection.add({
+      'role': message.role,
+      'content': message.content,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<List<Messages>> loadMessagesFromFirestore() async {
+    var collection = FirebaseFirestore.instance.collection('chats');
+    var querySnapshot =
+        await collection.orderBy('timestamp', descending: true).get();
+
+    return querySnapshot.docs.map((doc) {
+      return Messages(
+        role: doc['role'],
+        content: doc['content'],
+      );
+    }).toList();
   }
 
   @override
