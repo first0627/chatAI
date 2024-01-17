@@ -45,8 +45,10 @@ dependencies:
   go_router: ^13.0.1
   cloud_firestore: ^4.14.0
   firebase_storage: ^11.6.0
-  http: ^1.1.2
+  http: ^1.2.0
   vibration: ^1.8.4
+  rxdart: ^0.27.7
+  flutter_dotenv: ^5.1.0
 
 
 dev_dependencies:
@@ -86,6 +88,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - .env
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
