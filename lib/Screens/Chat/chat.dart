@@ -22,7 +22,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   String streamText = "";
 
-  static const String _kStrings = "Therapist Flutter ChatGPT";
+  static const String _kStrings = "Test Flutter ChatGPT";
 
   String get _currentString => _kStrings;
 
@@ -67,7 +67,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Future requestChat(String text) async {
     ChatCompletionModel openAiModel = ChatCompletionModel(
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-4-1106-preview",
       messages: [
         Messages(
           role: "system",
@@ -104,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Stream requestChatStream(String text) async* {
     ChatCompletionModel openAiModel = ChatCompletionModel(
-        model: "gpt-3.5-turbo-0613",
+        model: "gpt-4-1106-preview",
         messages: [
           Messages(
             role: "system",
