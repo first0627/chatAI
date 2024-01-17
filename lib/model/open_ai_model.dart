@@ -1,33 +1,35 @@
-// Message
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Messages {
   late final String role;
   late final String content;
+  late final Timestamp? timestamp; // Firestore 타임스탬프
 
-  Messages({required this.role, required this.content});
+  Messages({required this.role, required this.content, this.timestamp});
 
   Messages.fromJson(Map<String, dynamic> json) {
     role = json['role'];
     content = json['content'];
+    timestamp = json['timestamp'];
   }
 
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
-    data["role"] = role;
-    data["content"] = content;
+    data['role'] = role;
+    data['content'] = content;
+    data['timestamp'] = timestamp;
     return data;
   }
 
-  Map<String, String> toMap() {
-    return {"role": role, "content": content};
-  }
-
-  Messages copyWith({String? role, String? content}) {
+  Messages copyWith({String? role, String? content, Timestamp? timestamp}) {
     return Messages(
       role: role ?? this.role,
       content: content ?? this.content,
+      timestamp: timestamp ?? this.timestamp,
     );
   }
 }
+
 // ChetCompletionModel
 
 class ChatCompletionModel {
@@ -51,7 +53,13 @@ class ChatCompletionModel {
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
     data['model'] = model;
-    data['messages'] = messages.map((e) => e.toJson()).toList();
+    data['messages'] = messages
+        .map((e) => {
+              'role': e.role,
+              'content': e.content
+              // 'timestamp' 필드는 제외합니다.
+            })
+        .toList();
     data['stream'] = stream;
     return data;
   }

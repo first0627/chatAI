@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -20,11 +22,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final apiKey = dotenv.env["API_KEY"];
 
+  String? userId;
+
   String streamText = "";
 
   static const String _kStrings = "Test Flutter ChatGPT";
 
   String get _currentString => _kStrings;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    setupAnimations();
+    _setupAuthListener();
+  }
+
+  void _setupAuthListener() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        setState(() {
+          userId = null;
+        });
+      } else {
+        setState(() {
+          userId = user.uid;
+          loadMessages();
+        });
+      }
+    });
+  }
 
   ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
@@ -66,45 +93,63 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future requestChat(String text) async {
-    ChatCompletionModel openAiModel = ChatCompletionModel(
-      model: "gpt-4-1106-preview",
-      messages: [
-        Messages(
-          role: "system",
-          content: "You are a helpful assistant.",
-        ),
-        ..._historyList,
-      ],
-      stream: false,
-    );
-    final url = Uri.https("api.openai.com", "/v1/chat/completions");
-    final resp = await http.post(url,
-        headers: {
-          "Authorization": "Bearer $apiKey",
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode(openAiModel.toJson()));
-    print(resp.body);
-    await saveMessageToFirestore(Messages(role: "user", content: text));
-    if (resp.statusCode == 200) {
-      final jsonData = jsonDecode(utf8.decode(resp.bodyBytes)) as Map;
-      String role = jsonData["choices"][0]["message"]["role"];
-      String content = jsonData["choices"][0]["message"]["content"];
-      _historyList.last = _historyList.last.copyWith(
-        role: role,
-        content: content,
+    try {
+      print("flag1");
+      ChatCompletionModel openAiModel = ChatCompletionModel(
+        model: "gpt-3.5-turbo-1106",
+        messages: [
+          Messages(
+            role: "system",
+            content: "You are a helpful assistant.",
+          ),
+          ..._historyList,
+        ],
+        stream: false,
       );
-      setState(() {
-        _scrollDown();
-      });
+      print("flag2");
+      final url = Uri.https("api.openai.com", "/v1/chat/completions");
+      print("flag3");
+      final resp = await http.post(url,
+          headers: {
+            "Authorization": "Bearer $apiKey",
+            "Content-Type": "application/json",
+          },
+          body: jsonEncode(openAiModel.toJson()));
 
-      await saveMessageToFirestore(Messages(role: role, content: content));
+      print("응답 데이터: ${resp.body.substring(0, min(100, resp.body.length))}");
+
+      await saveMessageToFirestore(Messages(role: "user", content: text));
+
+      if (resp.statusCode == 200) {
+        final jsonData = jsonDecode(utf8.decode(resp.bodyBytes)) as Map;
+        String role = jsonData["choices"][0]["message"]["role"];
+        String content = jsonData["choices"][0]["message"]["content"];
+
+        await saveMessageToFirestore(Messages(role: role, content: content));
+
+        _historyList.last = _historyList.last.copyWith(
+          role: role,
+          content: content,
+        );
+        setState(() {
+          _scrollDown();
+        });
+
+        print("API 응답 에러: ${resp.statusCode}");
+        print("응답 내용: ${resp.body}");
+      } else {
+        print("JSON 파싱 에러: $e");
+        print("응답 데이터: ${resp.body}");
+      }
+    } catch (e) {
+      print(e.toString());
     }
   }
 
   Stream requestChatStream(String text) async* {
+    print("flag11");
     ChatCompletionModel openAiModel = ChatCompletionModel(
-        model: "gpt-4-1106-preview",
+        model: "gpt-3.5-turbo-1106",
         messages: [
           Messages(
             role: "system",
@@ -125,10 +170,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           "Accept-Encoding": "gzip, deflate, br",
         },
       );
+
     request.body = jsonEncode(openAiModel.toJson());
-
+    print("흥");
+    print(request.body);
     final resp = await http.Client().send(request);
-
+    print(resp.toString());
+    print("aa");
     final byteStream = resp.stream.asyncExpand(
       (event) => Rx.timer(
         event,
@@ -136,35 +184,41 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
     );
     final statusCode = resp.statusCode;
-
+    print(statusCode);
+    print("cc");
     var respText = "";
-
+    print("bb");
     await for (final byte in byteStream) {
-      try {
-        var decoded = utf8.decode(byte, allowMalformed: false);
-        if (decoded.contains('"content":')) {
-          final strings = decoded.split("data: ");
-          for (final string in strings) {
-            final trimmedString = string.trim();
-            if (trimmedString.isNotEmpty && !trimmedString.endsWith("[DONE]")) {
-              final map = jsonDecode(trimmedString) as Map;
-              final choices = map["choices"] as List;
-              final delta = choices[0]["delta"] as Map;
-              if (delta["content"] != null) {
-                final content = delta["content"] as String;
-                respText += content;
-                setState(() {
-                  streamText = respText;
-                });
-                yield content;
-              }
+      var decoded = utf8.decode(byte, allowMalformed: false);
+      respText += decoded;
+
+      while (respText.contains("\n")) {
+        var endOfJsonIndex = respText.indexOf("\n");
+        var jsonResponseText = respText.substring(0, endOfJsonIndex);
+
+        // 'data: ' 접두어를 제거합니다.
+        var jsonStartIndex = jsonResponseText.indexOf('{');
+        if (jsonStartIndex != -1) {
+          jsonResponseText = jsonResponseText.substring(jsonStartIndex);
+          try {
+            final jsonResponse =
+                jsonDecode(jsonResponseText) as Map<String, dynamic>;
+            final content = jsonResponse["choices"][0]["delta"]["content"];
+            if (content != null) {
+              print("엉");
+              // TODO: 응답 처리
             }
+          } catch (e) {
+            print("JSON 파싱 중 에러 발생: $e");
           }
         }
-      } catch (e) {
-        print(e.toString());
+
+        // 다음 메시지 처리를 위해 respText 업데이트
+        respText = respText.substring(endOfJsonIndex + 1);
       }
     }
+
+    print("Aa");
     await saveMessageToFirestore(Messages(role: "user", content: text));
     if (respText.isNotEmpty) {
       setState(() {});
@@ -173,32 +227,57 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    setupAnimations();
-    loadMessages();
-  }
+  Future<void> loadMessages() async {
+    if (userId == null) {
+      print("loadMessages: userId is null");
+      return;
+    }
+    print("loadMessages: Loading messages for userId: $userId");
 
-  void loadMessages() async {
-    var messages = await loadMessagesFromFirestore();
+    var userDoc = FirebaseFirestore.instance.collection('chats').doc(userId);
+    var collection = userDoc.collection('messages');
+    var querySnapshot =
+        await collection.orderBy('timestamp', descending: true).get();
+
+    print("loadMessages: Found ${querySnapshot.docs.length} messages");
     setState(() {
-      _historyList.addAll(messages.reversed); // 메시지 목록을 반전시켜 최신 메시지가 아래에 오도록 함
+      _historyList.clear();
+      _historyList.addAll(querySnapshot.docs
+          .map((doc) {
+            return Messages(
+              role: doc['role'],
+              content: doc['content'],
+            );
+          })
+          .toList()
+          .reversed);
     });
   }
 
+  // Firestore에서 사용자별로 메시지를 저장하는 예시
   Future<void> saveMessageToFirestore(Messages message) async {
-    var collection = FirebaseFirestore.instance.collection('chats');
-    await collection.add({
-      'role': message.role,
-      'content': message.content,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+    if (userId != null) {
+      var docRef = FirebaseFirestore.instance
+          .collection('chats')
+          .doc(userId)
+          .collection('messages');
+
+      await docRef.add({
+        'role': message.role,
+        'content': message.content,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } else {
+      print("유저 ID가 null입니다.");
+    }
   }
 
   Future<List<Messages>> loadMessagesFromFirestore() async {
-    var collection = FirebaseFirestore.instance.collection('chats');
+    if (userId == null) return [];
+
+    // Firestore 쿼리 경로 수정
+    var userDoc = FirebaseFirestore.instance.collection('chats').doc(userId);
+    var collection = userDoc.collection('messages'); // 사용자별 메시지가 저장된 서브컬렉션
     var querySnapshot =
         await collection.orderBy('timestamp', descending: true).get();
 
@@ -406,30 +485,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         if (messageTextController.text.isEmpty) {
                           return;
                         }
+                        var textToSend = messageTextController.text.trim();
+                        messageTextController.clear(); // 메시지 전송 후 입력 필드 초기화
+
                         setState(() {
                           _historyList.add(
-                            Messages(
-                                role: "user",
-                                content: messageTextController.text.trim()),
+                            Messages(role: "user", content: textToSend),
                           );
                           _historyList
                               .add(Messages(role: "assistant", content: ""));
                         });
+
                         try {
-                          var text = "";
-                          final stream = requestChatStream(
-                              messageTextController.text.trim());
-                          await for (final textChunk in stream) {
-                            text += textChunk;
-                            setState(() {
-                              _historyList.last =
-                                  _historyList.last.copyWith(content: text);
-                              _scrollDown();
-                            });
-                          }
-                          // await requestChat(messageTextController.text.trim());
-                          messageTextController.clear();
-                          streamText = "";
+                          await requestChat(
+                              textToSend); // 중복 전송 방지를 위해 입력 필드 초기화 후 호출
                         } catch (e) {
                           print(e.toString());
                         }
