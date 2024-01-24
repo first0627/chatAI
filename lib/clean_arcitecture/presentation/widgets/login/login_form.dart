@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../components/already_have_an_account_acheck.dart';
-import '../../../constants.dart';
-import '../../Signup/signup_screen.dart';
+import '../../../../constants.dart';
+import '../../pages/signup_screen.dart';
+import '../already_have_an_account_acheck.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});

@@ -1,11 +1,11 @@
+import 'package:chatprj/clean_arcitecture/presentation/widgets/signup/social_icon.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../screens/Signup/components/or_divider.dart';
-import '../../../screens/Signup/components/social_icon.dart';
+import 'or_divider.dart';
 
 class SocalSignUp extends StatefulWidget {
   const SocalSignUp({

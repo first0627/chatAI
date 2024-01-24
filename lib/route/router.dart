@@ -1,9 +1,9 @@
-import 'package:chatprj/Screens/Chat/chat.dart';
-import 'package:chatprj/Screens/Welcome/welcome_screen.dart';
+import 'package:chatprj/clean_arcitecture/presentation/pages/chat.dart';
+import 'package:chatprj/clean_arcitecture/presentation/pages/welcome_screen.dart';
 import 'package:go_router/go_router.dart';
 
-import '../Screens/Login/login_screen.dart';
-import '../Screens/Signup/signup_screen.dart';
+import '../clean_arcitecture/presentation/pages/login_screen.dart';
+import '../clean_arcitecture/presentation/pages/signup_screen.dart';
 
 // 로그인이 됐는지 안됐는지
 // true - login OK / false - login NO
