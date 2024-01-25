@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../components/already_have_an_account_acheck.dart';
-import '../../../constants.dart';
-import '../../Login/login_screen.dart';
+import '../../../../constants.dart';
+import '../../pages/login_screen.dart';
+import '../already_have_an_account_acheck.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});

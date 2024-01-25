@@ -7,7 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 
-import '../../model/open_ai_model.dart';
+import '../../data/models/chat_completion_model.dart';
+import '../../data/models/messages.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
