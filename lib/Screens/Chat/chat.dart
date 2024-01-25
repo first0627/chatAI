@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,7 +93,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Future requestChat(String text) async {
     try {
-      print("flag1");
       ChatCompletionModel openAiModel = ChatCompletionModel(
         model: "gpt-3.5-turbo-1106",
         messages: [
@@ -106,17 +104,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ],
         stream: false,
       );
-      print("flag2");
+
       final url = Uri.https("api.openai.com", "/v1/chat/completions");
-      print("flag3");
+
       final resp = await http.post(url,
           headers: {
             "Authorization": "Bearer $apiKey",
             "Content-Type": "application/json",
           },
           body: jsonEncode(openAiModel.toJson()));
-
-      print("응답 데이터: ${resp.body.substring(0, min(100, resp.body.length))}");
 
       await saveMessageToFirestore(Messages(role: "user", content: text));
 
@@ -134,20 +130,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         setState(() {
           _scrollDown();
         });
-
-        print("API 응답 에러: ${resp.statusCode}");
-        print("응답 내용: ${resp.body}");
-      } else {
-        print("JSON 파싱 에러: $e");
-        print("응답 데이터: ${resp.body}");
-      }
+      } else {}
     } catch (e) {
       print(e.toString());
     }
   }
 
   Stream requestChatStream(String text) async* {
-    print("flag11");
     ChatCompletionModel openAiModel = ChatCompletionModel(
         model: "gpt-3.5-turbo-1106",
         messages: [
@@ -172,11 +161,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       );
 
     request.body = jsonEncode(openAiModel.toJson());
-    print("흥");
-    print(request.body);
+
     final resp = await http.Client().send(request);
-    print(resp.toString());
-    print("aa");
+
     final byteStream = resp.stream.asyncExpand(
       (event) => Rx.timer(
         event,
@@ -184,10 +171,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
     );
     final statusCode = resp.statusCode;
-    print(statusCode);
-    print("cc");
+
     var respText = "";
-    print("bb");
+
     await for (final byte in byteStream) {
       var decoded = utf8.decode(byte, allowMalformed: false);
       respText += decoded;
@@ -205,7 +191,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 jsonDecode(jsonResponseText) as Map<String, dynamic>;
             final content = jsonResponse["choices"][0]["delta"]["content"];
             if (content != null) {
-              print("엉");
               // TODO: 응답 처리
             }
           } catch (e) {
@@ -218,7 +203,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       }
     }
 
-    print("Aa");
     await saveMessageToFirestore(Messages(role: "user", content: text));
     if (respText.isNotEmpty) {
       setState(() {});
@@ -232,14 +216,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print("loadMessages: userId is null");
       return;
     }
-    print("loadMessages: Loading messages for userId: $userId");
 
     var userDoc = FirebaseFirestore.instance.collection('chats').doc(userId);
     var collection = userDoc.collection('messages');
     var querySnapshot =
         await collection.orderBy('timestamp', descending: true).get();
 
-    print("loadMessages: Found ${querySnapshot.docs.length} messages");
     setState(() {
       _historyList.clear();
       _historyList.addAll(querySnapshot.docs
