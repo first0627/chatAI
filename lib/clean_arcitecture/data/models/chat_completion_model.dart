@@ -1,4 +1,4 @@
-import 'messages.dart';
+import 'data_message_model.dart';
 
 class ChatCompletionModel {
   late final String model;

@@ -36,7 +36,7 @@ final router = GoRouter(
             path: 'login', builder: (context, state) => const LoginScreen()),
         GoRoute(
             path: 'signup', builder: (context, state) => const SignUpScreen()),
-        GoRoute(path: 'chat', builder: (context, state) => const ChatScreen()),
+        GoRoute(path: 'chat', builder: (context, state) => ChatScreen()),
       ],
     ),
   ],

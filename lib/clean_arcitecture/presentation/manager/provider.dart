@@ -1,24 +1,31 @@
-// 애니메이션 관련 상태 관리
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/messages.dart';
+import '../../data/data_sources/chat_message_data_source.dart';
+import '../../data/repository/chat_message_repository.dart';
+import '../../domain/use_cases/chat_message_user_case.dart';
+import '../../domain/use_cases/get_chat_response.dart';
+import 'chat_repository_provider.dart';
 
-final messageHistoryProvider = StateProvider<List<Messages>>((ref) => []);
+final requestChatProvider = Provider<RequestChat>((ref) {
+  final repository = ref.watch(chatRepositoryProvider);
+  return RequestChat(repository);
+});
 
-final streamTextProvider = StateProvider<String>((ref) => "");
+final chatUseCaseProvider = Provider<ChatUseCase>((ref) {
+  final chatRepository = ref.watch(chatMessageRepositoryProvider);
+  return ChatUseCase(chatRepository);
+});
 
-// 기타 필요한 상태에 대한 프로바이더 추가...
+final chatMessageRepositoryProvider =
+    Provider<ChatMessageRepositoryImpl>((ref) {
+  final dataSource = ref.watch(chatMessageDataSourceProvider);
+  return ChatMessageRepositoryImpl(dataSource);
+});
 
-// 애니메이션 관련 상태 관리
-final animationControllerProvider =
-    StateProvider<AnimationController?>((ref) => null);
-final characterCountProvider = StateProvider<int>((ref) => 0);
+// lib/clean_arcitecture/presentation/manager/provider.dart
 
-// OpenAI API 키 상태 관리
-final apiKeyProvider = StateProvider<String?>((ref) => dotenv.env["API_KEY"]);
+final chatMessageDataSourceProvider = Provider<ChatMessageDataSource>((ref) {
+  return ChatMessageDataSource();
+});
 
-// 테스트용 문자열 상태 관리
-final testStringProvider =
-    StateProvider<String>((ref) => "Test Flutter ChatGPT");
+// lib/clean_arcitecture/presentation/manager/provider.dart

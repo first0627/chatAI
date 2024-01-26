@@ -1,22 +1,25 @@
 import 'dart:convert';
 
+import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:rxdart/rxdart.dart';
 
 import '../../data/models/chat_completion_model.dart';
-import '../../data/models/messages.dart';
+import '../../data/models/data_message_model.dart';
+import '../manager/provider.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+class _ChatScreenState extends ConsumerState<ChatScreen>
+    with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
   final List<Messages> _historyList = List.empty(growable: true);
 
@@ -115,100 +118,30 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           },
           body: jsonEncode(openAiModel.toJson()));
 
-      await saveMessageToFirestore(Messages(role: "user", content: text));
+      ref.read(chatUseCaseProvider).saveMessageToFirestore(
+          MessagesEntity(role: "user", content: text), userId);
+
+      //await saveMessageToFirestore(Messages(role: "user", content: text));
 
       if (resp.statusCode == 200) {
         final jsonData = jsonDecode(utf8.decode(resp.bodyBytes)) as Map;
         String role = jsonData["choices"][0]["message"]["role"];
         String content = jsonData["choices"][0]["message"]["content"];
 
-        await saveMessageToFirestore(Messages(role: role, content: content));
+        ref.read(chatUseCaseProvider).saveMessageToFirestore(
+            MessagesEntity(role: "user", content: text), userId);
 
         _historyList.last = _historyList.last.copyWith(
           role: role,
           content: content,
         );
+
         setState(() {
           _scrollDown();
         });
       } else {}
     } catch (e) {
       print(e.toString());
-    }
-  }
-
-  Stream requestChatStream(String text) async* {
-    ChatCompletionModel openAiModel = ChatCompletionModel(
-        model: "gpt-3.5-turbo-1106",
-        messages: [
-          Messages(
-            role: "system",
-            content: "You are a helpful assistant.",
-          ),
-          ..._historyList,
-        ],
-        stream: true);
-
-    final url = Uri.https("api.openai.com", "/v1/chat/completions");
-    final request = http.Request("POST", url)
-      ..headers.addAll(
-        {
-          "Authorization": "Bearer $apiKey",
-          "Content-Type": 'application/json; charset=UTF-8',
-          "Connection": "keep-alive",
-          "Accept": "*/*",
-          "Accept-Encoding": "gzip, deflate, br",
-        },
-      );
-
-    request.body = jsonEncode(openAiModel.toJson());
-
-    final resp = await http.Client().send(request);
-
-    final byteStream = resp.stream.asyncExpand(
-      (event) => Rx.timer(
-        event,
-        const Duration(milliseconds: 50),
-      ),
-    );
-    final statusCode = resp.statusCode;
-
-    var respText = "";
-
-    await for (final byte in byteStream) {
-      var decoded = utf8.decode(byte, allowMalformed: false);
-      respText += decoded;
-
-      while (respText.contains("\n")) {
-        var endOfJsonIndex = respText.indexOf("\n");
-        var jsonResponseText = respText.substring(0, endOfJsonIndex);
-
-        // 'data: ' 접두어를 제거합니다.
-        var jsonStartIndex = jsonResponseText.indexOf('{');
-        if (jsonStartIndex != -1) {
-          jsonResponseText = jsonResponseText.substring(jsonStartIndex);
-          try {
-            final jsonResponse =
-                jsonDecode(jsonResponseText) as Map<String, dynamic>;
-            final content = jsonResponse["choices"][0]["delta"]["content"];
-            if (content != null) {
-              // TODO: 응답 처리
-            }
-          } catch (e) {
-            print("JSON 파싱 중 에러 발생: $e");
-          }
-        }
-
-        // 다음 메시지 처리를 위해 respText 업데이트
-        respText = respText.substring(endOfJsonIndex + 1);
-      }
-    }
-
-    await saveMessageToFirestore(Messages(role: "user", content: text));
-    if (respText.isNotEmpty) {
-      setState(() {});
-      await saveMessageToFirestore(
-          Messages(role: "assistant", content: respText));
     }
   }
 
@@ -253,23 +186,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } else {
       print("유저 ID가 null입니다.");
     }
-  }
-
-  Future<List<Messages>> loadMessagesFromFirestore() async {
-    if (userId == null) return [];
-
-    // Firestore 쿼리 경로 수정
-    var userDoc = FirebaseFirestore.instance.collection('chats').doc(userId);
-    var collection = userDoc.collection('messages'); // 사용자별 메시지가 저장된 서브컬렉션
-    var querySnapshot =
-        await collection.orderBy('timestamp', descending: true).get();
-
-    return querySnapshot.docs.map((doc) {
-      return Messages(
-        role: doc['role'],
-        content: doc['content'],
-      );
-    }).toList();
   }
 
   @override
