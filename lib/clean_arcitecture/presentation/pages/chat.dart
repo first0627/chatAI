@@ -129,7 +129,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         String content = jsonData["choices"][0]["message"]["content"];
 
         ref.read(chatUseCaseProvider).saveMessageToFirestore(
-            MessagesEntity(role: "user", content: text), userId);
+            MessagesEntity(role: role, content: content), userId);
 
         _historyList.last = _historyList.last.copyWith(
           role: role,
