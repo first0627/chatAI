@@ -10,15 +10,16 @@ class ChatMessageRepositoryImpl implements ChatMessageRepository {
   ChatMessageRepositoryImpl(this.dataSource);
 
   @override
-  Future<void> saveMessageToFirestore(
-      MessagesEntity message, String? userId) async {
-    final message_tran = Messages.fromEntity(message);
+  Future<void> saveMessageToFirestore(MessagesEntity message) async {
+    final messageTran = Messages.fromEntity(message);
 
-    dataSource.saveMessageToFirestore(message_tran, userId);
+    dataSource.saveMessageToFirestore(messageTran);
   }
 
   @override
-  Future<void> loadMessages(String? userid) async {
-    dataSource.loadMessagesFromFirestore(userid);
+  Future<List<MessagesEntity>> loadMessages() async {
+    final messages = await dataSource.loadMessagesFromFirestore();
+
+    return messages.map((message) => message.toEntity()).toList();
   }
 }

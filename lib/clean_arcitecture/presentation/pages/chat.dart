@@ -1,15 +1,11 @@
-import 'dart:convert';
-
+import 'package:chatprj/clean_arcitecture/domain/entities/entities_chat_data_source.dart';
 import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 
-import '../../data/models/chat_completion_model.dart';
-import '../../data/models/data_message_model.dart';
+import '../manager/history_list_provider.dart';
 import '../manager/provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -21,11 +17,11 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
-  final List<Messages> _historyList = List.empty(growable: true);
+  //final List<MessagesEntity> _historyList = List.empty(growable: true);
 
   final apiKey = dotenv.env["API_KEY"];
 
-  String? userId;
+  String? userId = FirebaseAuth.instance.currentUser!.uid;
 
   String streamText = "";
 
@@ -38,29 +34,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     // TODO: implement initState
     super.initState();
     setupAnimations();
-    _setupAuthListener();
+    Future.microtask(() {
+      ref.read(historyListProvider.notifier).clearMessages();
+      ref.read(historyListProvider.notifier).addAll();
+    });
+
+    //_setupAuthListener();
   }
 
-  void _setupAuthListener() {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        setState(() {
-          userId = null;
-        });
-      } else {
-        setState(() {
-          userId = user.uid;
-          loadMessages();
-        });
-      }
-    });
-  }
+  // void _setupAuthListener() {
+  //   FirebaseAuth.instance.authStateChanges().listen((User? user) {
+  //     if (user == null) {
+  //       setState(() {
+  //         userId = null;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         userId = user.uid;
+  //         loadMessages();
+  //       });
+  //     }
+  //   });
+  // }
 
   ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
   late AnimationController animationController;
 
-  void _scrollDown() {
+  void scrollDown() {
     scrollController.animateTo(
       scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 350),
@@ -95,6 +96,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     animationController.forward();
   }
 
+  /*
   Future requestChat(String text) async {
     try {
       ChatCompletionModel openAiModel = ChatCompletionModel(
@@ -144,7 +146,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       print(e.toString());
     }
   }
+  */
 
+  /*
   Future<void> loadMessages() async {
     if (userId == null) {
       print("loadMessages: userId is null");
@@ -160,7 +164,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       _historyList.clear();
       _historyList.addAll(querySnapshot.docs
           .map((doc) {
-            return Messages(
+            return MessagesEntity(
               role: doc['role'],
               content: doc['content'],
             );
@@ -169,25 +173,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
           .reversed);
     });
   }
-
-  // Firestore에서 사용자별로 메시지를 저장하는 예시
-  Future<void> saveMessageToFirestore(Messages message) async {
-    if (userId != null) {
-      var docRef = FirebaseFirestore.instance
-          .collection('chats')
-          .doc(userId)
-          .collection('messages');
-
-      await docRef.add({
-        'role': message.role,
-        'content': message.content,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    } else {
-      print("유저 ID가 null입니다.");
-    }
-  }
-
+*/
   @override
   void dispose() {
     messageTextController.dispose();
@@ -207,7 +193,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 Navigator.of(context).pop();
                 setState(() {
                   messageTextController.clear();
-                  _historyList.clear();
+                  ref.read(historyListProvider.notifier).clearMessages();
                 });
               },
               child: const Text("네"))
@@ -257,7 +243,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: _historyList.isEmpty
+                  child: ref.watch(historyListProvider).isEmpty
                       ? Center(
                           child: AnimatedBuilder(
                             animation: _characterCount,
@@ -286,9 +272,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                           onTap: () => FocusScope.of(context).unfocus(),
                           child: ListView.builder(
                             controller: scrollController,
-                            itemCount: _historyList.length,
+                            itemCount: ref.watch(historyListProvider).length,
                             itemBuilder: (context, index) {
-                              if (_historyList[index].role == "user") {
+                              if (ref.watch(historyListProvider)[index].role ==
+                                  "user") {
                                 return Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 16),
@@ -304,7 +291,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                               CrossAxisAlignment.start,
                                           children: [
                                             const Text("User"),
-                                            Text(_historyList[index].content),
+                                            Text(ref
+                                                .read(
+                                                    historyListProvider)[index]
+                                                .content),
                                           ],
                                         ),
                                       )
@@ -327,7 +317,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                         CrossAxisAlignment.start,
                                     children: [
                                       const Text("ChatGPT"),
-                                      Text(_historyList[index].content)
+                                      Text(ref
+                                          .read(historyListProvider)[index]
+                                          .content)
                                     ],
                                   ))
                                 ],
@@ -354,7 +346,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 confirmDismiss: (d) async {
                   if (d == DismissDirection.startToEnd) {
                     //logic
-                    if (_historyList.isEmpty) return;
+                    if (ref.watch(historyListProvider).isEmpty) return;
                     clearChat();
                   }
                   return null;
@@ -387,19 +379,44 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         var textToSend = messageTextController.text.trim();
                         messageTextController.clear(); // 메시지 전송 후 입력 필드 초기화
 
-                        setState(() {
-                          _historyList.add(
-                            Messages(role: "user", content: textToSend),
-                          );
-                          _historyList
-                              .add(Messages(role: "assistant", content: ""));
-                        });
+                        ref.read(historyListProvider.notifier).addMessage(
+                              MessagesEntity(role: "user", content: textToSend),
+                            );
+
+                        ref.read(historyListProvider.notifier).addMessage(
+                              MessagesEntity(role: "assistant", content: ""),
+                            );
+
+                        // setState(() {
+                        //   _historyList.add(
+                        //     MessagesEntity(role: "user", content: textToSend),
+                        //   );
+                        //   _historyList.add(
+                        //       MessagesEntity(role: "assistant", content: ""));
+                        // });
 
                         try {
-                          await requestChat(
-                              textToSend); // 중복 전송 방지를 위해 입력 필드 초기화 후 호출
+                          await ref
+                              .read(requestChatProvider)
+                              .repository
+                              .requestChat(
+                                ChatDataSourceEntity(
+                                    model: "gpt-3.5-turbo-1106",
+                                    messages: [
+                                      MessagesEntity(
+                                        role: "system",
+                                        content: "You are a helpful assistant.",
+                                      ),
+                                      ...ref.read(historyListProvider),
+                                    ],
+                                    stream: false),
+                                textToSend,
+                                MessagesEntity(
+                                    role: "user", content: textToSend),
+                              );
                         } catch (e) {
-                          print(e.toString());
+                          print("hello");
+                          debugPrint(e.toString());
                         }
                       },
                       icon: const Icon(Icons.arrow_circle_up),

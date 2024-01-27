@@ -1,3 +1,4 @@
+import '../../domain/entities/entities_chat_data_source.dart';
 import 'data_message_model.dart';
 
 class ChatCompletionModel {
@@ -10,6 +11,22 @@ class ChatCompletionModel {
     required this.messages,
     required this.stream,
   });
+
+  static ChatCompletionModel fromEntity(ChatDataSourceEntity entity) {
+    return ChatCompletionModel(
+      model: entity.model,
+      messages: entity.messages.map((e) => Messages.fromEntity(e)).toList(),
+      stream: entity.stream,
+    );
+  }
+
+  ChatDataSourceEntity toEntity() {
+    return ChatDataSourceEntity(
+      model: model,
+      messages: messages.map((e) => e.toEntity()).toList(),
+      stream: stream,
+    );
+  }
 
   ChatCompletionModel.fromJson(Map<String, dynamic> json) {
     model = json['model'];

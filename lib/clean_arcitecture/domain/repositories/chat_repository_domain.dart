@@ -1,7 +1,10 @@
 // lib/domain/repositories/chat_repository.dart
 
-import '../../data/models/chat_completion_model.dart';
+import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
+
+import '../entities/entities_chat_data_source.dart';
 
 abstract class ChatRepository {
-  Future<void> requestChat(ChatCompletionModel model, String text);
+  Future<void> requestChat(
+      ChatDataSourceEntity model, String text, MessagesEntity messagesEntity);
 }

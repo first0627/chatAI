@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/data_sources/chat_message_data_source.dart';
-import '../../data/repository/chat_message_repository.dart';
+import '../../data/repositories/chat_message_repository.dart';
 import '../../domain/use_cases/chat_message_user_case.dart';
-import '../../domain/use_cases/get_chat_response.dart';
+import '../../domain/use_cases/chat_use_case.dart';
 import 'chat_repository_provider.dart';
 
 final requestChatProvider = Provider<RequestChat>((ref) {

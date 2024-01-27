@@ -245,10 +245,10 @@ packages:
     dependency: transitive
     description:
       name: custom_lint_core
-      sha256: "2b235be098d157e244f18ea905a15a18c16a205e30553888fac6544bbf52f03f"
+      sha256: bfcc6b518c54d386ad0647ad7a4f415b4db3ea270d09fd9b7f4a1a2df07c3d84
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.8"
+    version: "0.5.10"
   dart_style:
     dependency: transitive
     description:

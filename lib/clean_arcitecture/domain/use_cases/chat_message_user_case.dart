@@ -9,11 +9,11 @@ class ChatUseCase {
 
   ChatUseCase(this.repository);
 
-  Future<void> saveMessageToFirestore(MessagesEntity message, String? userId) {
-    return repository.saveMessageToFirestore(message, userId);
+  Future<void> saveMessageToFirestore(MessagesEntity message) {
+    return repository.saveMessageToFirestore(message);
   }
 
-  Future<void> loadMessages(String? userId) {
-    return repository.loadMessages(userId);
+  Future<List<MessagesEntity>> loadMessages() {
+    return repository.loadMessages();
   }
 }

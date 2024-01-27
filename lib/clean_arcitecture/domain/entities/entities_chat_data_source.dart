@@ -1,18 +1,13 @@
-// lib/domain/entities/entities_chat_data_source.dart
+import 'entities_message_model.dart';
+
 class ChatDataSourceEntity {
-  final String response;
+  late final String model;
+  late final List<MessagesEntity> messages;
+  late final bool stream;
 
-  ChatDataSourceEntity({required this.response});
-
-  factory ChatDataSourceEntity.fromJson(Map<String, dynamic> json) {
-    return ChatDataSourceEntity(
-      response: json['response'] as String,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'response': response,
-    };
-  }
+  ChatDataSourceEntity({
+    required this.model,
+    required this.messages,
+    required this.stream,
+  });
 }
