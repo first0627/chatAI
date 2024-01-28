@@ -15,7 +15,7 @@ class ChatDataSource {
 
   ChatDataSource({required this.chatMessageDataSource});
 
-  Future<void> requestChat(
+  Future<Messages> requestChat(
       ChatCompletionModel model, String text, Messages messages) async {
     debugPrint("requestChat");
     final url = Uri.https("api.openai.com", "/v1/chat/completions");
@@ -33,10 +33,12 @@ class ChatDataSource {
       final jsonData = jsonDecode(utf8.decode(response.bodyBytes));
       String role = jsonData['choices'][0]['message']["role"];
       String content = jsonData['choices'][0]['message']["content"];
-      print("role:" + role);
+      print("role:$role");
 
       await chatMessageDataSource
           .saveMessageToFirestore(Messages(role: role, content: content));
+
+      return Messages(role: role, content: content);
     } else {
       throw Exception("Failed to load chat data");
     }

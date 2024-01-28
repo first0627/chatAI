@@ -12,11 +12,15 @@ class ChatRepositoryImpl implements ChatRepository {
   ChatRepositoryImpl(this.dataSource);
 
   @override
-  Future<void> requestChat(
-      ChatDataSourceEntity model, String text, MessagesEntity messagesEntity) {
+  Future<MessagesEntity> requestChat(ChatDataSourceEntity model, String text,
+      MessagesEntity messagesEntity) async {
     final modelTran = ChatCompletionModel.fromEntity(model);
     final messagesTran = Messages.fromEntity(messagesEntity);
 
-    return dataSource.requestChat(modelTran, text, messagesTran);
+    final mess_to_entity =
+        await dataSource.requestChat(modelTran, text, messagesTran);
+
+    return mess_to_entity.toEntity();
+    //  return mess.map((e) => e.toEntity()).toList();
   }
 }

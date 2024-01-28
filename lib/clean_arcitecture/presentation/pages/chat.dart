@@ -6,7 +6,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
-import '../manager/provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -38,24 +37,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       ref.read(historyListProvider.notifier).clearMessages();
       ref.read(historyListProvider.notifier).addAll();
     });
-
-    //_setupAuthListener();
   }
-
-  // void _setupAuthListener() {
-  //   FirebaseAuth.instance.authStateChanges().listen((User? user) {
-  //     if (user == null) {
-  //       setState(() {
-  //         userId = null;
-  //       });
-  //     } else {
-  //       setState(() {
-  //         userId = user.uid;
-  //         loadMessages();
-  //       });
-  //     }
-  //   });
-  // }
 
   ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
@@ -96,84 +78,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     animationController.forward();
   }
 
-  /*
-  Future requestChat(String text) async {
-    try {
-      ChatCompletionModel openAiModel = ChatCompletionModel(
-        model: "gpt-3.5-turbo-1106",
-        messages: [
-          Messages(
-            role: "system",
-            content: "You are a helpful assistant.",
-          ),
-          ..._historyList,
-        ],
-        stream: false,
-      );
-
-      final url = Uri.https("api.openai.com", "/v1/chat/completions");
-
-      final resp = await http.post(url,
-          headers: {
-            "Authorization": "Bearer $apiKey",
-            "Content-Type": "application/json",
-          },
-          body: jsonEncode(openAiModel.toJson()));
-
-      ref.read(chatUseCaseProvider).saveMessageToFirestore(
-          MessagesEntity(role: "user", content: text), userId);
-
-      //await saveMessageToFirestore(Messages(role: "user", content: text));
-
-      if (resp.statusCode == 200) {
-        final jsonData = jsonDecode(utf8.decode(resp.bodyBytes)) as Map;
-        String role = jsonData["choices"][0]["message"]["role"];
-        String content = jsonData["choices"][0]["message"]["content"];
-
-        ref.read(chatUseCaseProvider).saveMessageToFirestore(
-            MessagesEntity(role: role, content: content), userId);
-
-        _historyList.last = _historyList.last.copyWith(
-          role: role,
-          content: content,
-        );
-
-        setState(() {
-          _scrollDown();
-        });
-      } else {}
-    } catch (e) {
-      print(e.toString());
-    }
-  }
-  */
-
-  /*
-  Future<void> loadMessages() async {
-    if (userId == null) {
-      print("loadMessages: userId is null");
-      return;
-    }
-
-    var userDoc = FirebaseFirestore.instance.collection('chats').doc(userId);
-    var collection = userDoc.collection('messages');
-    var querySnapshot =
-        await collection.orderBy('timestamp', descending: true).get();
-
-    setState(() {
-      _historyList.clear();
-      _historyList.addAll(querySnapshot.docs
-          .map((doc) {
-            return MessagesEntity(
-              role: doc['role'],
-              content: doc['content'],
-            );
-          })
-          .toList()
-          .reversed);
-    });
-  }
-*/
   @override
   void dispose() {
     messageTextController.dispose();
@@ -397,9 +301,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
                         try {
                           await ref
-                              .read(requestChatProvider)
-                              .repository
-                              .requestChat(
+                              .read(historyListProvider.notifier)
+                              .requestChatH(
                                 ChatDataSourceEntity(
                                     model: "gpt-3.5-turbo-1106",
                                     messages: [

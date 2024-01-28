@@ -5,6 +5,6 @@ import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model
 import '../entities/entities_chat_data_source.dart';
 
 abstract class ChatRepository {
-  Future<void> requestChat(
+  Future<MessagesEntity> requestChat(
       ChatDataSourceEntity model, String text, MessagesEntity messagesEntity);
 }

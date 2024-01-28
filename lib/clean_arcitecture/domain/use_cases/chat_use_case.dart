@@ -7,7 +7,7 @@ class RequestChat {
 
   RequestChat(this.repository);
 
-  Future<void> requestChat(
+  Future<MessagesEntity> requestChat(
       ChatDataSourceEntity model, String text, MessagesEntity messagesEntity) {
     return repository.requestChat(model, text, messagesEntity);
   }
