@@ -12,14 +12,7 @@ class ChatMessageDataSource {
     var querySnapshot =
         await collection.orderBy('timestamp', descending: true).get();
 
-    final List<Messages> loadlist = querySnapshot.docs.map((doc) {
-      return Messages(
-        role: doc['role'],
-        content: doc['content'],
-      );
-    }).toList();
-
-    return loadlist;
+    return _parseMessagesFromSnapshot(querySnapshot);
   }
 
   Future<void> saveMessageToFirestore(Messages message) async {
@@ -33,5 +26,14 @@ class ChatMessageDataSource {
       'content': message.content,
       'timestamp': FieldValue.serverTimestamp(),
     });
+  }
+
+  List<Messages> _parseMessagesFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return Messages(
+        role: doc['role'],
+        content: doc['content'],
+      );
+    }).toList();
   }
 }

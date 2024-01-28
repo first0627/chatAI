@@ -1,8 +1,6 @@
 import 'package:chatprj/clean_arcitecture/domain/entities/entities_chat_data_source.dart';
 import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
@@ -17,12 +15,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
   //final List<MessagesEntity> _historyList = List.empty(growable: true);
-
-  final apiKey = dotenv.env["API_KEY"];
-
-  String? userId = FirebaseAuth.instance.currentUser!.uid;
-
-  String streamText = "";
 
   static const String _kStrings = "Test Flutter ChatGPT";
 
@@ -42,14 +34,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
   late AnimationController animationController;
-
-  void scrollDown() {
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.fastOutSlowIn,
-    );
-  }
 
   setupAnimations() {
     animationController = AnimationController(

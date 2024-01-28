@@ -20,21 +20,6 @@ class ChatCompletionModel {
     );
   }
 
-  ChatDataSourceEntity toEntity() {
-    return ChatDataSourceEntity(
-      model: model,
-      messages: messages.map((e) => e.toEntity()).toList(),
-      stream: stream,
-    );
-  }
-
-  ChatCompletionModel.fromJson(Map<String, dynamic> json) {
-    model = json['model'];
-    messages =
-        List.from(json["messages"]).map((e) => Messages.fromJson(e)).toList();
-    stream = json[stream];
-  }
-
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
     data['model'] = model;
