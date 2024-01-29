@@ -142,7 +142,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                           onTap: () {
                             signOut();
                           },
-                          child: ListTile(
+                          child: const ListTile(
                             title: Text("로그아웃"),
                           ),
                         ),
@@ -310,16 +310,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                           await ref
                               .read(historyListProvider.notifier)
                               .requestChatH(
-                                ChatDataSourceEntity(
-                                    model: "gpt-3.5-turbo-1106",
-                                    messages: [
-                                      MessagesEntity(
-                                        role: "system",
-                                        content: "You are a helpful assistant.",
-                                      ),
-                                      ...ref.read(historyListProvider),
-                                    ],
-                                    stream: false),
+                                ChatDataSourceEntity(messages: [
+                                  MessagesEntity(
+                                    role: "system",
+                                    content: "You are a helpful assistant.",
+                                  ),
+                                  ...ref.read(historyListProvider),
+                                ], stream: false),
                                 textToSend,
                                 MessagesEntity(
                                     role: "user", content: textToSend),

@@ -17,10 +17,10 @@ class ChatRepositoryImpl implements ChatRepository {
     final modelTran = ChatCompletionModel.fromEntity(model);
     final messagesTran = Messages.fromEntity(messagesEntity);
 
-    final mess_to_entity =
+    final messToEntity =
         await dataSource.requestChat(modelTran, text, messagesTran);
 
-    return mess_to_entity.toEntity();
+    return messToEntity.toEntity();
     //  return mess.map((e) => e.toEntity()).toList();
   }
 }
