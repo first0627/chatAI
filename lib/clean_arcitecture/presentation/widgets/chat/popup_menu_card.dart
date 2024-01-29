@@ -1,14 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../route/router.dart';
 
 class PopupMenuCard extends StatelessWidget {
   final VoidCallback onClearChat;
-  final VoidCallback onSignOut;
 
   const PopupMenuCard({
-    Key? key,
+    super.key,
     required this.onClearChat,
-    required this.onSignOut,
-  }) : super(key: key);
+  });
+
+  Future<void> signOut() async {
+    print("signOut");
+    await FirebaseAuth.instance.signOut();
+    router.push('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +35,8 @@ class PopupMenuCard extends StatelessWidget {
               ),
             ),
             PopupMenuItem(
-              onTap: onSignOut,
+              onTap: signOut,
+              // onTap: () => context.read(authProvider).signOut(),
               child: const ListTile(
                 title: Text("로그아웃"),
               ),

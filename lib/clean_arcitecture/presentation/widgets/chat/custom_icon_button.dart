@@ -9,9 +9,9 @@ class CustomIconButton extends ConsumerStatefulWidget {
   final TextEditingController messageTextController;
 
   const CustomIconButton({
-    Key? key,
+    super.key,
     required this.messageTextController,
-  }) : super(key: key);
+  });
 
   @override
   _CustomIconButtonState createState() => _CustomIconButtonState();

@@ -1,6 +1,5 @@
 import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/message_list_gesture_detector.dart';
 import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/popup_menu_card.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,19 +80,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
           TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                setState(() {
-                  messageTextController.clear();
-                  ref.read(historyListProvider.notifier).clearMessages();
-                });
+
+                messageTextController.clear();
+                ref.read(historyListProvider.notifier).clearMessages();
               },
               child: const Text("네"))
         ],
       ),
     );
-  }
-
-  Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -107,8 +101,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             children: <Widget>[
               Align(
                 alignment: Alignment.centerRight,
-                child:
-                    PopupMenuCard(onClearChat: clearChat, onSignOut: signOut),
+                child: PopupMenuCard(
+                  onClearChat: clearChat,
+                ),
               ),
               Expanded(
                 child: Padding(
@@ -120,7 +115,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                             text: _currentString,
                           ),
                         )
-                      : MessageListView(),
+                      : const MessageListView(),
                 ),
               ),
               Dismissible(
