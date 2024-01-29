@@ -106,6 +106,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     );
   }
 
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,11 +130,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                             title: Text("히스토리"),
                           ),
                         ),
-                        const PopupMenuItem(
-                          child: ListTile(
-                            title: Text("설정"),
-                          ),
-                        ),
                         PopupMenuItem(
                           onTap: () {
                             clearChat();
@@ -138,7 +137,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                           child: const ListTile(
                             title: Text("새로운 채팅"),
                           ),
-                        )
+                        ),
+                        PopupMenuItem(
+                          onTap: () {
+                            signOut();
+                          },
+                          child: ListTile(
+                            title: Text("로그아웃"),
+                          ),
+                        ),
                       ];
                     },
                   ),

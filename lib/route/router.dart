@@ -1,5 +1,6 @@
 import 'package:chatprj/clean_arcitecture/presentation/pages/chat.dart';
 import 'package:chatprj/clean_arcitecture/presentation/pages/welcome_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 import '../clean_arcitecture/presentation/pages/login_screen.dart';
@@ -16,15 +17,21 @@ bool authState = false;
 
 // /named
 final router = GoRouter(
-  //redirect 이건 모든 라우터에 다 적용
   redirect: (context, state) {
-    //return string (path) ==> 해당 라우트로 이동한다 (path)
-    //return null -> 원래 이동하려던 라우트로 이동한다.
-    if (state.matchedLocation == '/login/private' && !authState) {
-      //로그인이 안됐을때는 로그인 화면으로 가라
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isLoggingIn = state.matchedLocation == '/login';
+    //final isLoggingIn = state.subloc == '/login';
+
+    // 로그인 상태이고, 로그인 페이지가 아니면 ChatScreen으로 리디렉션
+    if (isLoggedIn && !isLoggingIn) {
+      return '/chat';
+    }
+
+    // 로그인 상태가 아니면 로그인 페이지로 리디렉션
+    if (!isLoggedIn && !isLoggingIn) {
       return '/login';
     }
-    //로그인이 됐을때는 그냥 그대로 가라
+
     return null;
   },
   routes: [
@@ -33,10 +40,17 @@ final router = GoRouter(
       builder: (context, state) => const WelcomeScreen(),
       routes: [
         GoRoute(
-            path: 'login', builder: (context, state) => const LoginScreen()),
+          path: 'login',
+          builder: (context, state) => const LoginScreen(),
+        ),
         GoRoute(
-            path: 'signup', builder: (context, state) => const SignUpScreen()),
-        GoRoute(path: 'chat', builder: (context, state) => const ChatScreen()),
+          path: 'signup',
+          builder: (context, state) => const SignUpScreen(),
+        ),
+        GoRoute(
+          path: 'chat',
+          builder: (context, state) => const ChatScreen(),
+        ),
       ],
     ),
   ],
