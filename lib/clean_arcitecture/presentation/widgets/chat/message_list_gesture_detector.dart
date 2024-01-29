@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../manager/history_list_provider.dart';
 
-class MessageListView extends ConsumerWidget {
-  const MessageListView({super.key});
+class MessageListView extends ConsumerStatefulWidget {
+  MessageListView({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _MessageListViewState createState() => _MessageListViewState();
+}
+
+class _MessageListViewState extends ConsumerState<MessageListView> {
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
     final messages = ref.watch(historyListProvider);
-    final ScrollController scrollController = ScrollController();
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -22,17 +28,28 @@ class MessageListView extends ConsumerWidget {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const CircleAvatar(),
-                  const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(message.role == "user" ? "User" : "ChatGPT"),
-                        Text(message.content),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            CircleAvatar(),
+                            SizedBox(width: 8),
+                          ],
+                        )
                       ],
                     ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("User"),
+                      Text(message.content),
+                    ],
                   ),
                 ],
               ),
@@ -48,13 +65,14 @@ class MessageListView extends ConsumerWidget {
                 width: 8,
               ),
               Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("ChatGPT"),
-                  Text(messages[index].content)
-                ],
-              ))
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("ChatGPT"),
+                    Text(message.content),
+                  ],
+                ),
+              ),
             ],
           );
         },

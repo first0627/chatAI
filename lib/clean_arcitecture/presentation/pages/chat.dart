@@ -1,5 +1,3 @@
-import 'package:chatprj/clean_arcitecture/domain/entities/entities_chat_data_source.dart';
-import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
 import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/message_list_gesture_detector.dart';
 import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/popup_menu_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
 import '../widgets/chat/animated_text_builder.dart';
+import '../widgets/chat/custom_icon_button.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -121,7 +120,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                             text: _currentString,
                           ),
                         )
-                      : const MessageListView(),
+                      : MessageListView(),
                 ),
               ),
               Dismissible(
@@ -165,45 +164,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         ),
                       ),
                     ),
-                    IconButton(
-                      iconSize: 42,
-                      onPressed: () async {
-                        if (messageTextController.text.isEmpty) {
-                          return;
-                        }
-                        var textToSend = messageTextController.text.trim();
-                        messageTextController.clear(); // 메시지 전송 후 입력 필드 초기화
-
-                        ref.read(historyListProvider.notifier).addMessage(
-                              MessagesEntity(role: "user", content: textToSend),
-                            );
-
-                        ref.read(historyListProvider.notifier).addMessage(
-                              MessagesEntity(role: "assistant", content: ""),
-                            );
-
-                        try {
-                          await ref
-                              .read(historyListProvider.notifier)
-                              .requestChatH(
-                                ChatDataSourceEntity(messages: [
-                                  MessagesEntity(
-                                    role: "system",
-                                    content: "You are a helpful assistant.",
-                                  ),
-                                  ...ref.read(historyListProvider),
-                                ], stream: false),
-                                textToSend,
-                                MessagesEntity(
-                                    role: "user", content: textToSend),
-                              );
-                        } catch (e) {
-                          print("hello");
-                          debugPrint(e.toString());
-                        }
-                      },
-                      icon: const Icon(Icons.arrow_circle_up),
-                    )
+                    CustomIconButton(
+                      messageTextController: messageTextController,
+                    ),
                   ],
                 ),
               )
