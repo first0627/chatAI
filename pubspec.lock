@@ -237,18 +237,18 @@ packages:
     dependency: transitive
     description:
       name: custom_lint
-      sha256: dfb893ff17c83cf08676c6b64df11d3e53d80590978d7c1fb242afff3ba6dedb
+      sha256: "22bd87a362f433ba6aae127a7bac2838645270737f3721b180916d7c5946cb5d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.8"
+    version: "0.5.11"
   custom_lint_core:
     dependency: transitive
     description:
       name: custom_lint_core
-      sha256: bfcc6b518c54d386ad0647ad7a4f415b4db3ea270d09fd9b7f4a1a2df07c3d84
+      sha256: "77dd37e9afe5ed86fc75de22ed3dfae5afb75303111358766550af23e7de53cd"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.10"
+    version: "0.5.11"
   dart_style:
     dependency: transitive
     description:
@@ -500,10 +500,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: "3b40e751eaaa855179b416974d59d29669e750d2e50fcdb2b37f1cb0ca8c803a"
+      sha256: "07ee2436909f749d606f53521dc1725dd738dc5196e5ff815bc254253c594075"
       url: "https://pub.dev"
     source: hosted
-    version: "13.0.1"
+    version: "13.1.0"
   google_identity_services_web:
     dependency: transitive
     description:

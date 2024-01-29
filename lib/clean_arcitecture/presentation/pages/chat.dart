@@ -1,11 +1,13 @@
 import 'package:chatprj/clean_arcitecture/domain/entities/entities_chat_data_source.dart';
 import 'package:chatprj/clean_arcitecture/domain/entities/entities_message_model.dart';
+import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/message_list_gesture_detector.dart';
+import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/popup_menu_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
+import '../widgets/chat/animated_text_builder.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -16,13 +18,6 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
-  //final List<MessagesEntity> _historyList = List.empty(growable: true);
-
-  final apiKey = dotenv.env["API_KEY"];
-
-  String? userId = FirebaseAuth.instance.currentUser!.uid;
-
-  String streamText = "";
 
   static const String _kStrings = "Test Flutter ChatGPT";
 
@@ -42,14 +37,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
   late AnimationController animationController;
-
-  void scrollDown() {
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.fastOutSlowIn,
-    );
-  }
 
   setupAnimations() {
     animationController = AnimationController(
@@ -121,123 +108,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             children: <Widget>[
               Align(
                 alignment: Alignment.centerRight,
-                child: Card(
-                  child: PopupMenuButton(
-                    itemBuilder: (context) {
-                      return [
-                        const PopupMenuItem(
-                          child: ListTile(
-                            title: Text("히스토리"),
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: () {
-                            clearChat();
-                          },
-                          child: const ListTile(
-                            title: Text("새로운 채팅"),
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: () {
-                            signOut();
-                          },
-                          child: const ListTile(
-                            title: Text("로그아웃"),
-                          ),
-                        ),
-                      ];
-                    },
-                  ),
-                ),
+                child:
+                    PopupMenuCard(onClearChat: clearChat, onSignOut: signOut),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: ref.watch(historyListProvider).isEmpty
                       ? Center(
-                          child: AnimatedBuilder(
-                            animation: _characterCount,
-                            builder: (BuildContext context, Widget? child) {
-                              String text = _currentString.substring(
-                                  0, _characterCount.value);
-                              return Row(
-                                children: [
-                                  Text(
-                                    text,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 24,
-                                    ),
-                                  ),
-                                  CircleAvatar(
-                                    radius: 8,
-                                    backgroundColor: Colors.orange[200],
-                                  )
-                                ],
-                              );
-                            },
+                          child: AnimatedTextBuilder(
+                            characterCount: _characterCount,
+                            text: _currentString,
                           ),
                         )
-                      : GestureDetector(
-                          onTap: () => FocusScope.of(context).unfocus(),
-                          child: ListView.builder(
-                            controller: scrollController,
-                            itemCount: ref.watch(historyListProvider).length,
-                            itemBuilder: (context, index) {
-                              if (ref.watch(historyListProvider)[index].role ==
-                                  "user") {
-                                return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  child: Row(
-                                    children: [
-                                      const CircleAvatar(),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text("User"),
-                                            Text(ref
-                                                .read(
-                                                    historyListProvider)[index]
-                                                .content),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const CircleAvatar(
-                                    backgroundColor: Colors.teal,
-                                  ),
-                                  const SizedBox(
-                                    width: 8,
-                                  ),
-                                  Expanded(
-                                      child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text("ChatGPT"),
-                                      Text(ref
-                                          .read(historyListProvider)[index]
-                                          .content)
-                                    ],
-                                  ))
-                                ],
-                              );
-                            },
-                          ),
-                        ),
+                      : const MessageListView(),
                 ),
               ),
               Dismissible(
@@ -297,14 +181,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         ref.read(historyListProvider.notifier).addMessage(
                               MessagesEntity(role: "assistant", content: ""),
                             );
-
-                        // setState(() {
-                        //   _historyList.add(
-                        //     MessagesEntity(role: "user", content: textToSend),
-                        //   );
-                        //   _historyList.add(
-                        //       MessagesEntity(role: "assistant", content: ""));
-                        // });
 
                         try {
                           await ref
