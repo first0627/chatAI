@@ -146,14 +146,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
+                          color: Colors.white10,
                           borderRadius: BorderRadius.circular(32),
                           border: Border.all(),
                         ),
                         child: TextField(
+                          cursorColor: Colors.white,
                           controller: messageTextController,
                           decoration: const InputDecoration(
                             border: InputBorder.none,
-                            hintText: "Message",
+                            hintText: "상담 내용을 입력하세요.",
+                            hintStyle: TextStyle(color: Colors.grey),
                             fillColor: Colors.transparent,
                           ),
                         ),

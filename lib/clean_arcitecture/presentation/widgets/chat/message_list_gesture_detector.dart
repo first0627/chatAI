@@ -37,19 +37,34 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            CircleAvatar(),
+                            // CircleAvatar(
+                            //   backgroundImage:
+                            //       AssetImage('assets/images/user_profile.jpeg'),
+                            // ),
                             SizedBox(width: 8),
                           ],
                         )
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("User"),
-                      Text(message.content),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.yellow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        //const Text("User"),
+                        Text(
+                          message.content,
+                          style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -59,18 +74,26 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CircleAvatar(
+                backgroundImage: AssetImage('assets/images/gpt_profile.png'),
                 backgroundColor: Colors.teal,
               ),
               const SizedBox(
                 width: 8,
               ),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("ChatGPT"),
-                    Text(message.content),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("ChatGPT"),
+                      Text(message.content),
+                    ],
+                  ),
                 ),
               ),
             ],
