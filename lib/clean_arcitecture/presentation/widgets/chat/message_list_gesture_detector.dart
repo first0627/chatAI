@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../manager/history_list_provider.dart';
 
 class MessageListView extends ConsumerStatefulWidget {
-  const MessageListView({super.key});
+  MessageListView({super.key});
 
   @override
   _MessageListViewState createState() => _MessageListViewState();

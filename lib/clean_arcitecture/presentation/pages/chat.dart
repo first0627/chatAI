@@ -115,7 +115,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                             text: _currentString,
                           ),
                         )
-                      : const MessageListView(),
+                      : MessageListView(),
                 ),
               ),
               Dismissible(
