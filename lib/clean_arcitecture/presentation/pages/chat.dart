@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
-import '../widgets/chat/animated_text_builder.dart';
 import '../widgets/chat/custom_icon_button.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -20,7 +19,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   static const String _kStrings = "Test Flutter ChatGPT";
 
   String get _currentString => _kStrings;
+  late Future<void> loadMessagesFuture;
 
+  bool isFirstLoadComplete = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -31,6 +32,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       ref.read(historyListProvider.notifier).clearMessages();
 
       await ref.read(historyListProvider.notifier).addAll();
+    });
+
+    loadMessagesFuture = ref.read(historyListProvider.notifier).addAll();
+    loadMessagesFuture.then((_) {
+      setState(() {
+        isFirstLoadComplete = true; // 첫 로딩이 완료되면 상태 업데이트
+      });
     });
   }
 
@@ -108,16 +116,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: messages.isEmpty
-                      ? Center(
-                          child: AnimatedTextBuilder(
-                            characterCount: _characterCount,
-                            text: _currentString,
-                          ),
-                        )
-                      : MessageListView(scrollController: scrollController),
+                child: FutureBuilder(
+                  future: loadMessagesFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (isFirstLoadComplete && scrollController.hasClients) {
+                        // 처음 로드될 때 한 번만 스크롤 이동
+                        scrollController
+                            .jumpTo(scrollController.position.maxScrollExtent);
+                        isFirstLoadComplete = false; // 다음 로드 때 스크롤 이동 방지
+                      }
+                      return MessageListView(
+                          scrollController: scrollController);
+                    } else {
+                      return CircularProgressIndicator();
+                    }
+                  },
                 ),
               ),
               Dismissible(

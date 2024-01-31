@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/entities/entities_message_model.dart';
 import '../../manager/history_list_provider.dart';
 
 class MessageListView extends ConsumerStatefulWidget {
   final ScrollController scrollController;
+
   MessageListView({required this.scrollController, Key? key}) : super(key: key);
 
   @override
@@ -18,12 +18,13 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
   void initState() {
     super.initState();
     widget.scrollController.addListener(listner);
+    /*
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (widget.scrollController.hasClients) {
         widget.scrollController
             .jumpTo(widget.scrollController.position.maxScrollExtent);
       }
-    });
+    });*/
   }
 
   void listner() {
@@ -33,28 +34,12 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
         // 새로운 메시지가 추가되면 스크롤을 아래로 이동
         WidgetsBinding.instance!.addPostFrameCallback((_) {
           if (widget.scrollController.hasClients) {
-            widget.scrollController.animateTo(
-              widget.scrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-            );
+            widget.scrollController
+                .jumpTo(widget.scrollController.position.maxScrollExtent);
           }
         });
       }
     }
-  }
-
-  void addMessage(MessagesEntity message) {
-    ref.read(historyListProvider.notifier).addMessage(message);
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      if (widget.scrollController.hasClients) {
-        widget.scrollController.animateTo(
-          widget.scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
   }
 
   @override

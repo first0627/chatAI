@@ -17,8 +17,6 @@ final historyListProvider =
 });
 
 class HistoryListNotifier extends StateNotifier<List<MessagesEntity>> {
-  int _currentPage = 0;
-  final int _itemsPerPage = 20; // 한 페이지에 로드할 아이템 수
   final ChatUseCase chatUseCase;
 
   final RequestChat requestChat;
