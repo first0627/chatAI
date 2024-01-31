@@ -7,10 +7,12 @@ import '../../manager/history_list_provider.dart';
 
 class CustomIconButton extends ConsumerStatefulWidget {
   final TextEditingController messageTextController;
+  final ScrollController scrollController;
 
   const CustomIconButton({
     super.key,
     required this.messageTextController,
+    required this.scrollController,
   });
 
   @override
@@ -33,6 +35,17 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
               MessagesEntity(role: "user", content: textToSend),
             );
 
+        // 메시지를 추가한 후에 스크롤 위치를 업데이트
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          if (widget.scrollController.hasClients) {
+            widget.scrollController.animateTo(
+              widget.scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+
         ref.read(historyListProvider.notifier).addMessage(
               MessagesEntity(role: "assistant", content: ""),
             );
@@ -53,6 +66,17 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
           print("hello");
           debugPrint(e.toString());
         }
+
+        // 메시지를 추가한 후에 스크롤 위치를 업데이트
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          if (widget.scrollController.hasClients) {
+            widget.scrollController.animateTo(
+              widget.scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
       },
       icon: const Icon(Icons.arrow_circle_up),
     );

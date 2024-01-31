@@ -16,7 +16,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
-
+  ScrollController scrollController = ScrollController();
   static const String _kStrings = "Test Flutter ChatGPT";
 
   String get _currentString => _kStrings;
@@ -26,13 +26,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     // TODO: implement initState
     super.initState();
     setupAnimations();
-    Future.microtask(() {
+
+    Future.microtask(() async {
       ref.read(historyListProvider.notifier).clearMessages();
-      ref.read(historyListProvider.notifier).addAll();
+
+      await ref.read(historyListProvider.notifier).addAll();
     });
   }
 
-  ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
   late AnimationController animationController;
 
@@ -92,6 +93,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    final messages = ref.watch(historyListProvider);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -108,14 +110,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: ref.watch(historyListProvider).isEmpty
+                  child: messages.isEmpty
                       ? Center(
                           child: AnimatedTextBuilder(
                             characterCount: _characterCount,
                             text: _currentString,
                           ),
                         )
-                      : MessageListView(),
+                      : MessageListView(scrollController: scrollController),
                 ),
               ),
               Dismissible(
@@ -135,7 +137,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 confirmDismiss: (d) async {
                   if (d == DismissDirection.startToEnd) {
                     //logic
-                    if (ref.watch(historyListProvider).isEmpty) return;
+                    if (messages.isEmpty) return;
                     clearChat();
                   }
                   return null;
@@ -163,6 +165,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       ),
                     ),
                     CustomIconButton(
+                      scrollController: scrollController,
                       messageTextController: messageTextController,
                     ),
                   ],
