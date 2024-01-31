@@ -37,6 +37,7 @@ class ChatDataSource {
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(utf8.decode(response.bodyBytes));
+      print(jsonData);
       String role = jsonData['choices'][0]['message']["role"];
       String content = jsonData['choices'][0]['message']["content"];
       print("role:$role");

@@ -4,15 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../manager/history_list_provider.dart';
 
 class MessageListView extends ConsumerStatefulWidget {
-  MessageListView({super.key});
+  final ScrollController scrollController;
+  MessageListView({super.key, required this.scrollController});
 
   @override
   _MessageListViewState createState() => _MessageListViewState();
 }
 
 class _MessageListViewState extends ConsumerState<MessageListView> {
-  final ScrollController scrollController = ScrollController();
-
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(historyListProvider);
@@ -20,7 +19,7 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: ListView.builder(
-        controller: scrollController,
+        controller: widget.scrollController,
         itemCount: messages.length,
         itemBuilder: (context, index) {
           final message = messages[index];

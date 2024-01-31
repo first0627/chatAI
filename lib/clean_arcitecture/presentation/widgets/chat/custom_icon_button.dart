@@ -42,7 +42,8 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
                 ChatDataSourceEntity(messages: [
                   MessagesEntity(
                     role: "system",
-                    content: "You are a helpful assistant.",
+                    content:
+                        "you role is a tour guild. you can ask me about the tour information",
                   ),
                   ...ref.read(historyListProvider),
                 ], stream: false),

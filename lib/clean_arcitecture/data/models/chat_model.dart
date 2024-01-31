@@ -20,7 +20,7 @@ class ChatCompletionModel {
 
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
-    data['model'] = gpt_model_version;
+    data['model'] = gpt_model_version4_turbo;
     data['messages'] = messages
         .map((e) => {
               'role': e.role,

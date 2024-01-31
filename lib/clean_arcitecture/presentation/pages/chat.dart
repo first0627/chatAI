@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
+import '../manager/scroll_controller.dart';
 import '../widgets/chat/animated_text_builder.dart';
 import '../widgets/chat/custom_icon_button.dart';
 
@@ -26,13 +27,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     // TODO: implement initState
     super.initState();
     setupAnimations();
+    final scrollController = ref.read(scrollControllerProvider);
     Future.microtask(() {
       ref.read(historyListProvider.notifier).clearMessages();
       ref.read(historyListProvider.notifier).addAll();
+      Future.delayed(Duration(milliseconds: 3000), () {
+        ref.read(scrollControllerProvider.notifier).scrollToBottom();
+      });
     });
   }
 
-  ScrollController scrollController = ScrollController();
   late Animation<int> _characterCount;
   late AnimationController animationController;
 
@@ -66,7 +70,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   @override
   void dispose() {
     messageTextController.dispose();
-    scrollController.dispose();
     super.dispose();
   }
 
@@ -92,6 +95,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    final scrollController = ref.watch(scrollControllerProvider);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -115,7 +119,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                             text: _currentString,
                           ),
                         )
-                      : MessageListView(),
+                      : MessageListView(
+                          scrollController: scrollController,
+                        ),
                 ),
               ),
               Dismissible(
