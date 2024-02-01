@@ -35,28 +35,15 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
               MessagesEntity(role: "user", content: textToSend),
             );
 
-        // 메시지를 추가한 후에 스크롤 위치를 업데이트
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
-          if (widget.scrollController.hasClients) {
-            widget.scrollController.animateTo(
-              widget.scrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-            );
-          }
-        });
-
         ref.read(historyListProvider.notifier).addMessage(
               MessagesEntity(role: "assistant", content: ""),
             );
-
         try {
           await ref.read(historyListProvider.notifier).requestChatH(
                 ChatDataSourceEntity(messages: [
                   MessagesEntity(
                     role: "system",
-                    content:
-                        "you role is a tour guild. you can ask me about the tour information",
+                    content: "you are a helpful assistant",
                   ),
                   ...ref.read(historyListProvider),
                 ], stream: false),
@@ -69,13 +56,9 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
         }
 
         // 메시지를 추가한 후에 스크롤 위치를 업데이트
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
+        Future.delayed(Duration.zero, () {
           if (widget.scrollController.hasClients) {
-            widget.scrollController.animateTo(
-              widget.scrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-            );
+            widget.scrollController.jumpTo(0.0);
           }
         });
       },

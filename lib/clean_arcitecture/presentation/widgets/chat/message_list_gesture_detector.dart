@@ -13,11 +13,10 @@ class MessageListView extends ConsumerStatefulWidget {
 }
 
 class _MessageListViewState extends ConsumerState<MessageListView> {
-  late int messageCount;
   @override
   void initState() {
     super.initState();
-    widget.scrollController.addListener(listner);
+    //   widget.scrollController.addListener(listner);
     /*
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       if (widget.scrollController.hasClients) {
@@ -32,7 +31,7 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
       if (widget.scrollController.position.pixels != 0) {
         // 스크롤이 가장 아래에 도달했을 때
         // 새로운 메시지가 추가되면 스크롤을 아래로 이동
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           if (widget.scrollController.hasClients) {
             widget.scrollController
                 .jumpTo(widget.scrollController.position.maxScrollExtent);
@@ -52,6 +51,16 @@ class _MessageListViewState extends ConsumerState<MessageListView> {
         controller: widget.scrollController,
         itemCount: messages.length,
         itemBuilder: (context, index) {
+          if (messages.length > 0) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              widget.scrollController.animateTo(
+                widget.scrollController.position.maxScrollExtent,
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+              );
+            });
+          }
+
           final message = messages[index];
 
           if (message.role == "user") {

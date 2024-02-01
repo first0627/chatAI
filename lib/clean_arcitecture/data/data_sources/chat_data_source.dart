@@ -34,6 +34,8 @@ class ChatDataSource {
           "Content-Type": "application/json",
         },
         body: jsonEncode(model.toJson()));
+    print(model.toJson());
+    print("sssssssssssssssssssssssssssssssssssssss");
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(utf8.decode(response.bodyBytes));

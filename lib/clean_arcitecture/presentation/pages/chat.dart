@@ -1,9 +1,9 @@
-import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/message_list_gesture_detector.dart';
 import 'package:chatprj/clean_arcitecture/presentation/widgets/chat/popup_menu_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
+import '../widgets/chat/animated_text_builder.dart';
 import '../widgets/chat/custom_icon_button.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -17,29 +17,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   TextEditingController messageTextController = TextEditingController();
   ScrollController scrollController = ScrollController();
   static const String _kStrings = "Test Flutter ChatGPT";
-
+  bool isLoading = true;
   String get _currentString => _kStrings;
-  late Future<void> loadMessagesFuture;
 
-  bool isFirstLoadComplete = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     setupAnimations();
+    Future.microtask(() => loadMessages());
+  }
 
-    Future.microtask(() async {
-      ref.read(historyListProvider.notifier).clearMessages();
+  void loadMessages() async {
+    ref.read(historyListProvider.notifier).clearMessages();
+    await ref.read(historyListProvider.notifier).addAll();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => scrollToBottom()); // 프레임이 렌더링된 후에 스크롤을 내림
+  }
 
-      await ref.read(historyListProvider.notifier).addAll();
-    });
-
-    loadMessagesFuture = ref.read(historyListProvider.notifier).addAll();
-    loadMessagesFuture.then((_) {
-      setState(() {
-        isFirstLoadComplete = true; // 첫 로딩이 완료되면 상태 업데이트
-      });
-    });
+  void scrollToBottom() {
+    if (scrollController.hasClients) {
+      scrollController
+          .animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          )
+          .then((_) => setState(() {
+                isLoading = false; // 스크롤 완료 후 로딩 상태 업데이트
+              }));
+    } else {
+      setState(() => isLoading = false); // 스크롤 대상이 없는 경우 바로 로딩 상태 업데이트
+    }
   }
 
   late Animation<int> _characterCount;
@@ -75,7 +84,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   @override
   void dispose() {
     messageTextController.dispose();
-    scrollController.dispose();
+    // scrollController.dispose();
     super.dispose();
   }
 
@@ -103,92 +112,190 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   Widget build(BuildContext context) {
     final messages = ref.watch(historyListProvider);
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Align(
-                alignment: Alignment.centerRight,
-                child: PopupMenuCard(
-                  onClearChat: clearChat,
-                ),
-              ),
-              Expanded(
-                child: FutureBuilder(
-                  future: loadMessagesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      if (isFirstLoadComplete && scrollController.hasClients) {
-                        // 처음 로드될 때 한 번만 스크롤 이동
-                        scrollController
-                            .jumpTo(scrollController.position.maxScrollExtent);
-                        isFirstLoadComplete = false; // 다음 로드 때 스크롤 이동 방지
-                      }
-                      return MessageListView(
-                          scrollController: scrollController);
-                    } else {
-                      return CircularProgressIndicator();
-                    }
-                  },
-                ),
-              ),
-              Dismissible(
-                key: const Key("chat-bar"),
-                direction: DismissDirection.startToEnd,
-                onDismissed: (d) {
-                  if (d == DismissDirection.startToEnd) {
-                    // logic
-                  }
-                },
-                background: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("New Chat"),
-                  ],
-                ),
-                confirmDismiss: (d) async {
-                  if (d == DismissDirection.startToEnd) {
-                    //logic
-                    if (messages.isEmpty) return;
-                    clearChat();
-                  }
-                  return null;
-                },
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white10,
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(),
-                        ),
-                        child: TextField(
-                          cursorColor: Colors.white,
-                          controller: messageTextController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "상담 내용을 입력하세요.",
-                            hintStyle: TextStyle(color: Colors.grey),
-                            fillColor: Colors.transparent,
-                          ),
-                        ),
+      resizeToAvoidBottomInset: true,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // 로딩 인디케이터
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuCard(
+                        onClearChat: clearChat,
                       ),
                     ),
-                    CustomIconButton(
-                      scrollController: scrollController,
-                      messageTextController: messageTextController,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: messages.isEmpty
+                            ? Center(
+                                child: AnimatedTextBuilder(
+                                  characterCount: _characterCount,
+                                  text: _currentString,
+                                ),
+                              )
+                            : GestureDetector(
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                },
+                                child: ListView.builder(
+                                  reverse: true,
+                                  controller: scrollController,
+                                  itemCount: messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = messages[index];
+
+                                    if (message.role == "user") {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            const Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      // CircleAvatar(
+                                                      //   backgroundImage:
+                                                      //       AssetImage('assets/images/user_profile.jpeg'),
+                                                      // ),
+                                                      SizedBox(width: 8),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.yellow,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  //const Text("User"),
+                                                  Text(
+                                                    message.content,
+                                                    style: const TextStyle(
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const CircleAvatar(
+                                          backgroundImage: AssetImage(
+                                              'assets/images/gpt_profile.png'),
+                                          backgroundColor: Colors.teal,
+                                        ),
+                                        const SizedBox(
+                                          width: 8,
+                                        ),
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white10,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text("ChatGPT"),
+                                                Text(message.content),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                      ),
                     ),
+                    Dismissible(
+                      key: const Key("chat-bar"),
+                      direction: DismissDirection.startToEnd,
+                      onDismissed: (d) {
+                        if (d == DismissDirection.startToEnd) {
+                          // logic
+                        }
+                      },
+                      background: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text("New Chat"),
+                        ],
+                      ),
+                      confirmDismiss: (d) async {
+                        if (d == DismissDirection.startToEnd) {
+                          //logic
+                          if (messages.isEmpty) return;
+                          clearChat();
+                        }
+                        return null;
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white10,
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(),
+                                ),
+                                child: TextField(
+                                  cursorColor: Colors.white,
+                                  controller: messageTextController,
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: "상담 내용을 입력하세요.",
+                                    hintStyle: TextStyle(color: Colors.grey),
+                                    fillColor: Colors.transparent,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            CustomIconButton(
+                              scrollController: scrollController,
+                              messageTextController: messageTextController,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }
