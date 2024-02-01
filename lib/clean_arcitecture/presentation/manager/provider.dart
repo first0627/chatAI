@@ -27,5 +27,3 @@ final chatMessageRepositoryProvider =
 final chatMessageDataSourceProvider = Provider<ChatMessageDataSource>((ref) {
   return ChatMessageDataSource();
 });
-
-// lib/clean_arcitecture/presentation/manager/provider.dart

@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../manager/history_list_provider.dart';
-import '../manager/scroll_controller.dart';
-import '../widgets/chat/animated_text_builder.dart';
 import '../widgets/chat/custom_icon_button.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -17,22 +15,29 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen>
     with TickerProviderStateMixin {
   TextEditingController messageTextController = TextEditingController();
-
+  ScrollController scrollController = ScrollController();
   static const String _kStrings = "Test Flutter ChatGPT";
 
   String get _currentString => _kStrings;
+  late Future<void> loadMessagesFuture;
 
+  bool isFirstLoadComplete = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     setupAnimations();
-    final scrollController = ref.read(scrollControllerProvider);
-    Future.microtask(() {
+
+    Future.microtask(() async {
       ref.read(historyListProvider.notifier).clearMessages();
-      ref.read(historyListProvider.notifier).addAll();
-      Future.delayed(Duration(milliseconds: 3000), () {
-        ref.read(scrollControllerProvider.notifier).scrollToBottom();
+
+      await ref.read(historyListProvider.notifier).addAll();
+    });
+
+    loadMessagesFuture = ref.read(historyListProvider.notifier).addAll();
+    loadMessagesFuture.then((_) {
+      setState(() {
+        isFirstLoadComplete = true; // 첫 로딩이 완료되면 상태 업데이트
       });
     });
   }
@@ -70,6 +75,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   @override
   void dispose() {
     messageTextController.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -95,7 +101,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    final scrollController = ref.watch(scrollControllerProvider);
+    final messages = ref.watch(historyListProvider);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -110,18 +116,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: ref.watch(historyListProvider).isEmpty
-                      ? Center(
-                          child: AnimatedTextBuilder(
-                            characterCount: _characterCount,
-                            text: _currentString,
-                          ),
-                        )
-                      : MessageListView(
-                          scrollController: scrollController,
-                        ),
+                child: FutureBuilder(
+                  future: loadMessagesFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (isFirstLoadComplete && scrollController.hasClients) {
+                        // 처음 로드될 때 한 번만 스크롤 이동
+                        scrollController
+                            .jumpTo(scrollController.position.maxScrollExtent);
+                        isFirstLoadComplete = false; // 다음 로드 때 스크롤 이동 방지
+                      }
+                      return MessageListView(
+                          scrollController: scrollController);
+                    } else {
+                      return CircularProgressIndicator();
+                    }
+                  },
                 ),
               ),
               Dismissible(
@@ -141,7 +151,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 confirmDismiss: (d) async {
                   if (d == DismissDirection.startToEnd) {
                     //logic
-                    if (ref.watch(historyListProvider).isEmpty) return;
+                    if (messages.isEmpty) return;
                     clearChat();
                   }
                   return null;
@@ -169,6 +179,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       ),
                     ),
                     CustomIconButton(
+                      scrollController: scrollController,
                       messageTextController: messageTextController,
                     ),
                   ],
