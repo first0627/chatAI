@@ -44,7 +44,8 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
                 ChatDataSourceEntity(messages: [
                   MessagesEntity(
                     role: "system",
-                    content: "you are a helpful assistant",
+                    content:
+                        "You are a friend and professional therapist who can touch the deepest parts of my heart.",
                   ),
                   ...ref.read(historyListProvider).reversed,
                 ], stream: false),
