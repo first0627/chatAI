@@ -38,6 +38,7 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
         ref.read(historyListProvider.notifier).addMessage(
               MessagesEntity(role: "assistant", content: ""),
             );
+
         try {
           await ref.read(historyListProvider.notifier).requestChatH(
                 ChatDataSourceEntity(messages: [
@@ -45,7 +46,7 @@ class _CustomIconButtonState extends ConsumerState<CustomIconButton> {
                     role: "system",
                     content: "you are a helpful assistant",
                   ),
-                  ...ref.read(historyListProvider),
+                  ...ref.read(historyListProvider).reversed,
                 ], stream: false),
                 textToSend,
                 MessagesEntity(role: "user", content: textToSend),

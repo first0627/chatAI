@@ -45,7 +45,7 @@ class HistoryListNotifier extends StateNotifier<List<MessagesEntity>> {
     try {
       final messages =
           await requestChat.requestChat(model, text, messagesEntity);
-      state.last = state.last.copyWith(
+      state.first = state.first.copyWith(
         role: messages.role,
         content: messages.content,
       );
@@ -57,8 +57,8 @@ class HistoryListNotifier extends StateNotifier<List<MessagesEntity>> {
 
   void addMessage(MessagesEntity message) {
     state = [
-      ...state,
       message,
+      ...state,
     ];
   }
 

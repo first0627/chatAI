@@ -23,6 +23,11 @@ class ChatDataSource {
     await saveMessage(messages);
     await saveResponseAsMessage(response);
 
+    print("ddddddddddddddddddddddddddddddddddddddddddd");
+    print(response.role);
+    print(response.content);
+    print(response.timestamp);
+
     return response;
   }
 
@@ -43,6 +48,7 @@ class ChatDataSource {
       String role = jsonData['choices'][0]['message']["role"];
       String content = jsonData['choices'][0]['message']["content"];
       print("role:$role");
+      print("content:$content");
 
       return Messages(role: role, content: content);
     } else {
