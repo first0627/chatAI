@@ -156,44 +156,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                           mainAxisAlignment:
                                               MainAxisAlignment.end,
                                           children: [
-                                            const Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.end,
-                                                    children: [
-                                                      // CircleAvatar(
-                                                      //   backgroundImage:
-                                                      //       AssetImage('assets/images/user_profile.jpeg'),
-                                                      // ),
-                                                      SizedBox(width: 8),
-                                                    ],
-                                                  )
-                                                ],
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                // 화면 너비의 최대 80%까지만 메시지가 차지하도록 제한
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.7,
                                               ),
-                                            ),
-                                            Container(
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.yellow,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  //const Text("User"),
-                                                  Text(
-                                                    message.content,
-                                                    style: const TextStyle(
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  message.content,
+                                                  softWrap: true, // 자동 줄바꿈 활성화
+                                                  style: const TextStyle(
+                                                      color: Colors.black),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -212,7 +196,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                         const SizedBox(
                                           width: 8,
                                         ),
-                                        Expanded(
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            // 화면 너비의 최대 80%까지만 메시지가 차지하도록 제한
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.7,
+                                          ),
                                           child: Container(
                                             padding: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
