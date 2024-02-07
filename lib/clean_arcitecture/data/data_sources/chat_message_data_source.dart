@@ -4,12 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/data_message_model.dart';
 
 class ChatMessageDataSource {
-  final _userId = FirebaseAuth.instance.currentUser?.uid;
   final FirebaseFirestore _firestore =
       FirebaseFirestore.instance; // Firestore 인스턴스를 속성으로 추가
 
   Future<List<Messages>> loadMessagesFromFirestore() async {
-    if (_userId == null) {
+    if (FirebaseAuth.instance.currentUser?.uid == null) {
       throw FirebaseAuthException(
         code: 'no-user',
         message: 'No user logged in',
@@ -17,8 +16,10 @@ class ChatMessageDataSource {
     }
 
     try {
-      var userDoc =
-          _firestore.collection('chats').doc(_userId); // _firestore 인스턴스 사용
+      print('userId: $FirebaseAuth.instance.currentUser?.uid');
+      var userDoc = _firestore
+          .collection('chats')
+          .doc(FirebaseAuth.instance.currentUser?.uid); // _firestore 인스턴스 사용
       var collection = userDoc.collection('messages');
       var querySnapshot =
           await collection.orderBy('timestamp', descending: true).get();
@@ -39,7 +40,7 @@ class ChatMessageDataSource {
   }
 
   Future<void> saveMessageToFirestore(Messages message) async {
-    if (_userId == null) {
+    if (FirebaseAuth.instance.currentUser?.uid == null) {
       throw FirebaseAuthException(
         code: 'no-user',
         message: 'No user logged in',
@@ -49,7 +50,7 @@ class ChatMessageDataSource {
     try {
       var docRef = _firestore
           .collection('chats')
-          .doc(_userId)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
           .collection('messages'); // _firestore 인스턴스 사용
       await docRef.add({
         'role': message.role,

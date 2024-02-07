@@ -50,8 +50,8 @@ class MyApp extends ConsumerWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 0,
-            foregroundColor: Colors.white,
-            backgroundColor: kPrimaryColor,
+            foregroundColor: kPrimaryColor,
+            backgroundColor: Colors.white,
             shape: const StadiumBorder(),
             maximumSize: const Size(double.infinity, 56),
             minimumSize: const Size(double.infinity, 56),

@@ -22,6 +22,9 @@ final router = GoRouter(
     final isLoggingIn = state.matchedLocation == '/login';
     //final isLoggingIn = state.subloc == '/login';
 
+    print('라우터');
+    print(FirebaseAuth.instance.currentUser?.uid);
+
     // 로그인 상태이고, 로그인 페이지가 아니면 ChatScreen으로 리디렉션
     if (isLoggedIn && !isLoggingIn) {
       return '/chat';

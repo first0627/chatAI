@@ -14,6 +14,7 @@ class PopupMenuCard extends StatelessWidget {
   Future<void> signOut() async {
     print("signOut");
     await FirebaseAuth.instance.signOut();
+
     router.push('/login');
   }
 

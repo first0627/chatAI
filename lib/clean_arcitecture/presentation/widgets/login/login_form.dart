@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../constants.dart';
 import '../../pages/signup_screen.dart';
 import '../already_have_an_account_acheck.dart';
+import '../signup/socal_sign_up.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -69,6 +70,7 @@ class _LoginFormState extends State<LoginForm> {
               );
             },
           ),
+          SocalSignUp(),
         ],
       ),
     );
@@ -88,6 +90,7 @@ class _LoginFormState extends State<LoginForm> {
         await _showCuteAlertDialog('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
       } else {
         // 로그인 성공 후 처리
+        print('로그인 성공: ${userCredential.user?.uid}');
         print(userCredential.user!.uid);
         context.push('/chat');
         // 여기에 로그인 후 이동할 페이지 또는 로직을 추가합니다.
